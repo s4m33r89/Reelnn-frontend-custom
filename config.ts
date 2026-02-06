@@ -1,29 +1,29 @@
 // SITE CONFIG
 export const NEXT_PUBLIC_SITE_NAME =
-  process.env.NEXT_PUBLIC_SITE_NAME || "FireFlix";
+  process.env.NEXT_PUBLIC_SITE_NAME || "reelnn";
 
 export const NEXT_PUBLIC_FOOTER_DESC =
   process.env.NEXT_PUBLIC_FOOTER_DESC ||
   "This website does not host any files on its own servers; it simply provides links to media files stored in telegram.";
 
 export const NEXT_PUBLIC_TELEGRAM_CONTACT =
-  process.env.NEXT_PUBLIC_FOOTER_COPYRIGHT || "https://t.me/fireflixprovider";
+  process.env.NEXT_PUBLIC_FOOTER_COPYRIGHT || "https://t.me/reelnnUpdates";
 
 export const NEXT_PUBLIC_WHATSAPP_CONTACT =
-  process.env.NEXT_PUBLIC_WHATSAPP_CONTACT || "https://t.me/fireflixnetwork";
+  process.env.NEXT_PUBLIC_WHATSAPP_CONTACT || "";
 
 export const NEXT_PUBLIC_INSTAGRAM_CONTACT =
-  process.env.NEXT_PUBLIC_INSTAGRAM_CONTACT || "https://t.me/fireflixproviderV2";
+  process.env.NEXT_PUBLIC_INSTAGRAM_CONTACT || "";
 
-export const SITE_SECRET = process.env.SITE_SECRET || "longlivedragonstark";
+export const SITE_SECRET = process.env.SITE_SECRET || "your_secret_key";
 
 // Backend API
-export const BACKEND_URL = process.env.BACKEND_URL || "http://15.235.166.179:6519";
+export const BACKEND_URL = process.env.BACKEND_URL || "http://0.0.0.0:6519";
 
 
 // Telegram
 export const NEXT_PUBLIC_TELEGRAM_BOT_NAME =
-  process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || "fireflixproviderv7_bot";
+  process.env.NEXT_PUBLIC_TELEGRAM_BOT_NAME || "reelnnbot";
 
 
 // Shortener API
