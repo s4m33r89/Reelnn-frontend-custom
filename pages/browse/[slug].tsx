@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useState, useEffect, useMemo, memo, useCallback } from "react";
-import { Card, content } from "../../components/Card";
+// FIX 1: Correct Import Path using alias
+import { Card, content } from "@/components/Card";
 import Head from "next/head";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -89,7 +90,8 @@ SortOption.displayName = "SortOption";
 
 export default function BrowsePage() {
   const router = useRouter();
-  const { slug, page = 1, sort_by = "new" } = router.query;
+  // Safe destructuring with defaults
+  const { slug, page = "1", sort_by = "new" } = router.query;
 
   const pageNumber = useMemo(() => {
     const parsed = parseInt(page as string, 10);
@@ -97,7 +99,7 @@ export default function BrowsePage() {
   }, [page]);
 
   const mediaType = slug as string;
-  const sortOption = (sort_by as string) || "new";
+  const sortOption = (sort_by as string);
 
   const [contents, setContents] = useState<content[]>([]);
   const [pagination, setPagination] = useState<PaginationData>({
@@ -115,8 +117,10 @@ export default function BrowsePage() {
     () => Boolean(mediaType && VALID_MEDIA_TYPES.includes(mediaType)),
     [mediaType]
   );
+
+  // FIX 2: Decoupled fetching from routing to prevent infinite loops
   const fetchPage = useCallback(
-    async (pageNum: number, sortBy: string = sortOption) => {
+    async (pageNum: number, sortBy: string) => {
       if (!isValidMediaType) return;
 
       setLoading(true);
@@ -124,12 +128,10 @@ export default function BrowsePage() {
 
       try {
         const sanitizedPage = Math.max(1, pageNum);
-        const sanitizedMediaType = VALID_MEDIA_TYPES.includes(mediaType)
-          ? mediaType
-          : "movie";
-
+        
+        // Call the API endpoint
         const res = await fetch(
-          `/api/pagi_page?media_type=${sanitizedMediaType}&page=${sanitizedPage}&sort_by=${sortBy}`
+          `/api/pagi_page?media_type=${mediaType}&page=${sanitizedPage}&sort_by=${sortBy}`
         );
 
         if (!res.ok) {
@@ -141,18 +143,8 @@ export default function BrowsePage() {
 
         const data = await res.json();
         setContents(data.items);
-        console.log("Fetched contents:", data.pagination);
         setPagination(data.pagination);
-
-        if (pageNum !== pageNumber || sortBy !== sortOption) {
-          router.push(
-            `/browse/${mediaType}?page=${pageNum}&sort_by=${sortBy}`,
-            undefined,
-            {
-              shallow: true,
-            }
-          );
-        }
+        
       } catch (error) {
         console.error("Error fetching page data:", error);
         setError(
@@ -164,28 +156,21 @@ export default function BrowsePage() {
         setLoading(false);
       }
     },
-    [isValidMediaType, mediaType, pageNumber, sortOption, router]
+    [isValidMediaType, mediaType]
   );
 
+  // Handle URL updates for Sort
   const handleSortChange = (newSort: string) => {
     if (newSort !== sortOption && !loading) {
-      router.push(`/browse/${mediaType}?page=1&sort_by=${newSort}`, undefined, {
-        shallow: true,
-      });
+      router.push(
+        `/browse/${mediaType}?page=1&sort_by=${newSort}`, 
+        undefined, 
+        { shallow: true }
+      );
     }
   };
 
-  useEffect(() => {
-    if (!slug) return;
-
-    if (!isValidMediaType) {
-      router.push("/404");
-      return;
-    }
-
-    fetchPage(pageNumber, sortOption);
-  }, [slug, pageNumber, sortOption, router, isValidMediaType, fetchPage]);
-
+  // Handle URL updates for Page
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.total_pages && !loading) {
       router.push(
@@ -196,6 +181,20 @@ export default function BrowsePage() {
     }
   };
 
+  // Trigger Fetch when URL Params Change
+  useEffect(() => {
+    if (!router.isReady) return;
+    if (!slug) return;
+
+    if (!isValidMediaType) {
+      router.replace("/404"); // Use replace to avoid history stack issues
+      return;
+    }
+
+    fetchPage(pageNumber, sortOption);
+  }, [slug, pageNumber, sortOption, isValidMediaType, fetchPage, router.isReady]);
+
+  // Pagination Logic
   const pageNumbers = useMemo(() => {
     if (pagination.total_pages <= 1) return [];
 
@@ -203,17 +202,10 @@ export default function BrowsePage() {
     const numbers: (number | string)[] = [1];
 
     if (page > 3) numbers.push("...");
-
     if (page > 2) numbers.push(page - 1);
-
-    if (page !== 1 && page !== total_pages) {
-      numbers.push(page);
-    }
-
+    if (page !== 1 && page !== total_pages) numbers.push(page);
     if (page < total_pages - 1) numbers.push(page + 1);
-
     if (page < total_pages - 2) numbers.push("...");
-
     if (total_pages > 1) numbers.push(total_pages);
 
     return numbers;
@@ -235,7 +227,7 @@ export default function BrowsePage() {
   } | ${NEXT_PUBLIC_SITE_NAME}`;
 
   return (
-    <div className="font-mont text-white min-h-screen bg-background ">
+    <div className="font-mont text-white min-h-screen bg-background">
       <Head>
         <title>{pageTitle}</title>
         <meta
@@ -250,7 +242,7 @@ export default function BrowsePage() {
 
       <main className="pt-16 md:pt-20 px-4 sm:px-6 lg:px-8 max-w-screen-2xl mx-auto pb-16 md:pb-20">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-8 mt-4 sm:mt-6">
-          <h1 className="text-2xl sm:text-3xl font-bold">
+          <h1 className="text-2xl sm:text-3xl font-bold capitalize">
             Browse {mediaType === "movie" ? "Movies" : "TV Shows"}
           </h1>
 
@@ -347,4 +339,3 @@ export default function BrowsePage() {
     </div>
   );
 }
-
